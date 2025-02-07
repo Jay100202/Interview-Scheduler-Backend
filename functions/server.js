@@ -9,32 +9,43 @@ const errorHandler = require('../middleware/errorHandler');
 
 const app = express();
 
-// Middleware
+// Middleware for parsing JSON
 app.use(express.json());
 
-// Configure CORS
-const corsOptions = {
-  origin: '*', // Allow all origins
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-app.use(cors(corsOptions));
+// CORS Configuration
+app.use(cors({
+    origin: '*', // Consider specifying domains in production
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
 
-// Connect to database
+// Explicitly handle OPTIONS for CORS preflight requests
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Connect to MongoDB
 connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/timeslots', timeslotRoutes);
 
-// Error handling
+// Error Handling Middleware
 app.use(errorHandler);
 
-// Catch-all error handler
+// Generic Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
 });
 
 module.exports.handler = serverless(app);
