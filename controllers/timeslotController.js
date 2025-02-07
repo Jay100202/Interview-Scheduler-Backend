@@ -1,4 +1,4 @@
-const Timeslot = require('../models/timeSlot');
+const Timeslot = require('../models/slot_time');
 
 const createTimeslot = async (req, res) => {
   try {
